@@ -1,4 +1,4 @@
-![Build test](https://img.shields.io/github/actions/workflow/status/yzhu27/xpln/test.yml)
+<!-- ![Build test](https://img.shields.io/github/actions/workflow/status/yzhu27/xpln/test.yml) -->
 ![MIT license](https://img.shields.io/github/license/yzhu27/xpln)
 ![GitHub top language](https://img.shields.io/github/languages/top/yzhu27/xpln)
 ![GitHub contributors](https://img.shields.io/github/contributors/yzhu27/xpln)
