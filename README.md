@@ -11,7 +11,7 @@ Since this work is based on previous HWs, we do not explain details, in order to
 
 * [Expected result](https://github.com/timm/tested/blob/main/etc/out/xpln.out):
 
-![expected result img](./etc/images/expected_result.png)
+![expected result img](./etc/image/expected_result.png)
 
 (the result is too long to have a screen capture)
 
@@ -19,6 +19,6 @@ Since this work is based on previous HWs, we do not explain details, in order to
 
 * [result](https://github.com/yzhu27/xpln/blob/main/etc/out/xpln.out):
 
-![result img](./etc/images/result.png)
+![result img](./etc/image/result.png)
 
 (same reason)
