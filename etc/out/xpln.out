@@ -1,0 +1,190 @@
+
+▶️  the ------------------------------------------------------------
+{:bins 16 :cliffs 0.147 :d 0.35 :file ../etc/data/auto93.csv :Far 0.95 :go all :help False :Halves 512 :min 0.5 :Max 512 :p 2 :rest 4 :Reuse True :seed 937162211}
+✅ pass: the
+
+▶️  rand ------------------------------------------------------------
+✅ pass: rand
+
+▶️  some ------------------------------------------------------------
+dict_values([63, 204, 325, 395, 1169, 1524, 1700, 1790, 1956, 2889, 2958, 3394, 3494, 3886, 5389, 5759, 5825, 6001, 6452, 6514, 6651, 6750, 6910, 7087, 7935, 9012, 9165, 9195, 9381, 9408, 9668, 9713])
+✅ pass: some
+
+▶️  syms ------------------------------------------------------------
+a 1.38
+✅ pass: syms
+
+▶️  nums ------------------------------------------------------------
+1  0.5   0.32
+2  0.26   0.32
+✅ pass: nums
+
+▶️  csv ------------------------------------------------------------
+✅ pass: csv
+
+▶️  data ------------------------------------------------------------
+3 8 4 1.5503875968992247
+{:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}
+✅ pass: data
+
+▶️  clone ------------------------------------------------------------
+{:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}
+{:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}
+✅ pass: clone
+
+▶️  cliffs ------------------------------------------------------------
+> 1.0  False
+> 1.02  False
+> 1.05  False
+> 1.08  False
+> 1.1  False
+> 1.13  True
+✅ pass: cliffs
+
+▶️  dist ------------------------------------------------------------
+{:lo 0.0 :hi 0.8746495688429434 :mid 0.55 :div 0.26}
+✅ pass: dist
+
+▶️  half ------------------------------------------------------------
+199   199
+l   {:Acc+ 14.5 :Lbs- 3574.0 :Mpg+ 20.0 :N 199}
+r   {:Acc+ 16.2 :Lbs- 2230.0 :Mpg+ 30.0 :N 199}
+✅ pass: half
+
+▶️  tree ------------------------------------------------------------
+[398]  {:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}
+| [199]  
+| | [100]  
+| | | [50]  
+| | | | [25]  {:Acc+ 16.0 :Lbs- 3781.0 :Mpg+ 20.0 :N 25}
+| | | | [25]  {:Acc+ 13.5 :Lbs- 4098.0 :Mpg+ 10.0 :N 25}
+| | | [50]  
+| | | | [25]  {:Acc+ 13.0 :Lbs- 4209.0 :Mpg+ 10.0 :N 25}
+| | | | [25]  {:Acc+ 11.1 :Lbs- 4425.0 :Mpg+ 10.0 :N 25}
+| | [99]  
+| | | [50]  
+| | | | [25]  {:Acc+ 15.1 :Lbs- 3410.0 :Mpg+ 20.0 :N 25}
+| | | | [25]  {:Acc+ 16.0 :Lbs- 3282.0 :Mpg+ 20.0 :N 25}
+| | | [49]  
+| | | | [25]  {:Acc+ 16.0 :Lbs- 2807.0 :Mpg+ 20.0 :N 25}
+| | | | [24]  {:Acc+ 15.8 :Lbs- 3060.0 :Mpg+ 20.0 :N 24}
+| [199]  
+| | [100]  
+| | | [50]  
+| | | | [25]  {:Acc+ 16.4 :Lbs- 2900.0 :Mpg+ 30.0 :N 25}
+| | | | [25]  {:Acc+ 15.8 :Lbs- 2720.0 :Mpg+ 30.0 :N 25}
+| | | [50]  
+| | | | [25]  {:Acc+ 15.0 :Lbs- 2451.0 :Mpg+ 30.0 :N 25}
+| | | | [25]  {:Acc+ 15.3 :Lbs- 2405.0 :Mpg+ 30.0 :N 25}
+| | [99]  
+| | | [50]  
+| | | | [25]  {:Acc+ 15.8 :Lbs- 2051.0 :Mpg+ 30.0 :N 25}
+| | | | [25]  {:Acc+ 16.9 :Lbs- 2025.0 :Mpg+ 40.0 :N 25}
+| | | [49]  
+| | | | [25]  {:Acc+ 16.5 :Lbs- 2070.0 :Mpg+ 30.0 :N 25}
+| | | | [24]  {:Acc+ 18.0 :Lbs- 2046.0 :Mpg+ 30.0 :N 24}
+✅ pass: tree
+
+▶️  sway ------------------------------------------------------------
+
+all    {:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}
+       {:Acc+ 2.71 :Lbs- 888.76 :Mpg+ 7.75 :N 398}
+
+best    {:Acc+ 13.7 :Lbs- 3725.0 :Mpg+ 20.0 :N 12}
+       {:Acc+ 1.59 :Lbs- 216.67 :Mpg+ 0.0 :N 12}
+
+rest    {:Acc+ 15.7 :Lbs- 3021.0 :Mpg+ 20.0 :N 48}
+       {:Acc+ 2.52 :Lbs- 828.29 :Mpg+ 3.88 :N 48}
+
+all != best?   {:0 (True, 'Lbs-') :1 (True, 'Acc+') :2 (True, 'Mpg+')}
+best != rest?   {:0 (True, 'Lbs-') :1 (True, 'Acc+') :2 (True, 'Mpg+')}
+✅ pass: sway
+
+▶️  bins ------------------------------------------------------------
+all     {:best 12 :rest 48}
+  
+Clndrs  -inf  4  0.01  {:best 1 :rest 28}
+Clndrs  4  6  0.55  {:best 9 :rest 13}
+Clndrs  6  inf  0.09  {:best 2 :rest 7}
+  
+Volume  -inf  116  0.0  {:rest 15}
+Volume  116  140  0.02  {:best 1 :rest 12}
+Volume  140  173  0.0  {:rest 6}
+Volume  173  200  0.12  {:best 2 :rest 3}
+Volume  200  232  0.51  {:best 7 :rest 4}
+Volume  232  267  0.07  {:best 1 :rest 1}
+Volume  267  318  0.05  {:best 1 :rest 3}
+Volume  318  inf  0.0  {:rest 4}
+  
+Model  -inf  78  0.0  {:rest 34}
+Model  78  79  0.54  {:best 7 :rest 2}
+Model  79  80  0.04  {:best 1 :rest 4}
+Model  80  81  0.21  {:best 3 :rest 2}
+Model  81  inf  0.03  {:best 1 :rest 6}
+  
+origin  1  1  0.64  {:best 12 :rest 27}
+origin  2  2  0.0  {:rest 10}
+origin  3  3  0.0  {:rest 11}
+✅ pass: bins
+
+▶️  xpln ------------------------------------------------------------
+
+Clndrs -inf 3
+Clndrs 3 4
+Clndrs 4 6
+Clndrs 6 inf
+
+Volume -inf 90
+Volume 90 113
+Volume 113 141
+Volume 141 156
+Volume 156 173
+Volume 173 318
+Volume 318 350
+Volume 350 inf
+
+Model -inf 80
+Model 80 81
+Model 81 inf
+
+origin 1 1
+origin 2 2
+origin 3 3
+
+Model  80  81  0.95  {:best 13 :rest 3}
+Clndrs  3  4  0.52  {:best 11 :rest 28}
+Volume  90  113  0.24  {:best 5 :rest 12}
+origin  1  1  0.2  {:best 6 :rest 31}
+Volume  113  141  0.18  {:best 4 :rest 11}
+origin  3  3  0.18  {:best 4 :rest 11}
+origin  2  2  0.13  {:best 3 :rest 10}
+Volume  -inf  90  0.1  {:best 2 :rest 4}
+Volume  156  173  0.08  {:best 1}
+Volume  318  350  0.04  {:best 1 :rest 4}
+Clndrs  4  6  0.03  {:best 1 :rest 7}
+Clndrs  6  inf  0.02  {:best 1 :rest 16}
+Clndrs  -inf  3  0.0  {:rest 1}
+Volume  141  156  0.0  {:rest 2}
+Volume  173  318  0.0  {:rest 15}
+Volume  350  inf  0.0  {:rest 4}
+Model  -inf  80  0.0  {:rest 41}
+Model  81  inf  0.0  {:rest 8}
+{:Model ({0: {80, 81}}, 'Model')}
+{:Model ({0: {80, 81}}, 'Model')}
+{:Model ({0: {80, 81}}, 'Model') :Clndrs ({0: {3, 4}}, 'Clndrs')}
+{:Model ({0: {80, 81}}, 'Model') :Clndrs ({0: {3, 4}}, 'Clndrs') :Volume ({0: {113, 90}}, 'Volume')}
+{:Model ({0: {80, 81}}, 'Model') :Clndrs ({0: {3, 4}}, 'Clndrs') :Volume ({0: {113, 90}}, 'Volume') :origin ({0: 1}, 'origin')}
+{:Model ({0: {80, 81}}, 'Model') :Clndrs ({0: {3, 4}}, 'Clndrs') :Volume ({0: {90, 141}}, 'Volume') :origin ({0: 1}, 'origin')}
+{:Model ({0: {80, 81}}, 'Model') :Clndrs ({0: {3, 4}}, 'Clndrs') :Volume ({0: {90, 141}}, 'Volume') :origin ({0: 1, 1: 3}, 'origin')}
+{:Model ({0: {80, 81}}, 'Model') :Clndrs ({0: {3, 4}}, 'Clndrs') :Volume ({0: {90, 141}}, 'Volume') :origin ({}, 'origin')}
+{:Model ({0: {80, 81}}, 'Model') :Clndrs ({0: {3, 4}}, 'Clndrs') :Volume ({0: {-inf, 141}}, 'Volume') :origin ({}, 'origin')}
+
+------------
+explain={:origin {3}}
+all                 {:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}  {:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}
+sway with     6 evals  {:Acc+ 16.1 :Lbs- 2380.0 :Mpg+ 30.0 :N 13}  {:Acc+ 16.1 :Lbs- 2380.0 :Mpg+ 30.0 :N 13}
+xpln on       6 evals  {:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}  {:Acc+ 15.5 :Lbs- 2807.0 :Mpg+ 20.0 :N 398}
+sort with   398 evals  {:Acc+ 12.5 :Lbs- 4633.0 :Mpg+ 10.0 :N 12}  {:Acc+ 12.5 :Lbs- 4633.0 :Mpg+ 10.0 :N 12}
+✅ pass: xpln
+
+🔆 {:pass 15 :fail 0 :success 100.0}

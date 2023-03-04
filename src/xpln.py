@@ -7,7 +7,7 @@ import csv
 
 the = {}
 help = """
-xpln: multi-goal semi-supervised explanation
+xpln: multi-goal semi-supervised explanati 
 (c) 2023 Tim Menzies <timm@ieee.org> BSD-2
   
 USAGE: lua xpln.lua [OPTIONS] [-g ACTIONS]
@@ -104,14 +104,25 @@ def RANGE(at, txt, lo, hi=None):
 # Create a `DATA` to contain `rows`, summarized in `cols`.
 
 
-def RANGE():
-    raise NotImplementedError
+# Create a  RULE that groups `ranges` by their column id. 
+# Each group is a disjunction of its contents (and
+# sets of groups are conjunctions).
+def RULE(ranges , maxSize):
+    t = {}
+    for _ , range in ranges.items():
+        if range['txt'] not in t: t[range['txt']]={}
+        push(t[range['txt']], {'lo':range['lo'],'hi':range['hi'],'at':range['at']})
+    return prune(t, maxSize)
 
-def RULE():
-    raise NotImplementedError
-
-def prune():
-    raise NotImplementedError
+def prune(rule, maxSize):
+    n = 0
+    for txt,ranges in rule.items():
+        n += 1
+        if len(ranges) == maxSize[txt]:
+            n += 1
+            rule[txt] = {}
+    if n > 0:
+        return rule
 
 class DATA:
     def __init__(self):
@@ -290,7 +301,10 @@ def norm(num, n):
     return (n - num["lo"])/(num["hi"]-num["lo"] + 1/math.inf)
 
 
-def value(has, nB=1, nR=1, sGoal=True):
+def value(has, nB, nR, sGoal:str):
+    nB=nB or 1
+    nR=nR or 1
+    sGoal = sGoal or True
     b, r = 0, 0
     for x, n in has.items():
         if x == sGoal:
@@ -330,10 +344,14 @@ def better(data, row1, row2):
         y = norm(col, row2[col['at']])
         s1 -= math.exp(col['w'] * (x - y) / len(ys))
         s2 -= math.exp(col['w'] * (y - x) / len(ys))
-    return (s1 / len(ys)) < (s2 / len(ys))
+    return (s1 / len(ys)) - (s2 / len(ys))
 
-def betters():
-    raise NotImplementedError
+def betters(data,  n):
+    def fun(r1 , r2):
+        return better(data,r1,r2)
+    #tmp = sorted(data.rows.values(), key=fun) 
+    tmp = data.rows
+    return  n and slice(tmp,1,n), slice(tmp,n+1,None) or tmp
 
 def half(data, rows=None, cols=None, above=None):
     left, right = {}, {}
@@ -364,14 +382,15 @@ def half(data, rows=None, cols=None, above=None):
             push(left, two['row'])
         else:
             push(right, two['row'])
-    return left, right, A, B, c
+    evals = 1 if the['Reuse'] and above else 2
+    return left, right, A, B, c, evals
 
 
 def tree(data, rows=None, cols=None, above=None):
     rows = rows or data.rows
     here = {'data': DATA.clone(data, rows)}
     if len(rows) >= 2*(len(data.rows)**the['min']):
-        left, right, A, B, _ = half(data, rows, cols, above)
+        left, right, A, B, _,_ = half(data, rows, cols, above)
         here['left'] = tree(data, left, cols, A)
         here['right'] = tree(data, right, cols, B)
     return here
@@ -392,23 +411,54 @@ def showTree(tree, lvl=None):
 
 
 def sway(data):
-    def worker(rows, worse, above):
+    def worker(rows, worse, evals0, above=None):
         if len(rows) <= len(data.rows)**the['min']:
-            return rows, many(worse, the['rest']*len(rows))
+            return rows, many(worse, the['rest']*len(rows)),evals0
         else:
-            l, r, A, B, _ = half(data, rows, None, above)
+            l, r, A, B, _, evals = half(data, rows, None, above)
             if better(data, B, A):
                 l, r, A, B = r, l, B, A
 
             def fun(row):
                 push(worse, row)
             map(r, fun)
-            return worker(l, worse, A)
-    best, rest = worker(data.rows, {}, None)
-    return DATA.clone(data, best), DATA.clone(data, rest)
+            return worker(l, worse,evals+evals0, A)
+    best, rest, evals = worker(data.rows, {}, 0)
+    return DATA.clone(data, best), DATA.clone(data, rest), evals
+
 
 
 def bins(cols, rowss):
+    def with1Col(col):
+        n, ranges=withAllRows(col)
+        ranges = sort2(map(ranges, itself).values(), lt('lo'))
+        if type(ranges) == list:
+            u = {}
+            for k, v in enumerate(ranges):
+                u[k] = v
+            if col['isSym']: return u
+            else: return merges(u,n/the['bins'], the['d']*div(col))
+        else:
+            if col['isSym']: return ranges
+            else: return merges(ranges,n/the['bins'], the['d']*div(col))
+
+    def withAllRows(col):
+        n, ranges = 0, {}
+        def xy(x , y , n):
+            if x != '?':
+                n += 1
+                k = bin(col,x)
+                ranges[k] = RANGE(col['at'], col['txt'], x) if k not in ranges else ranges[k]
+                extend(ranges[k] , x , y)
+        for y, rows in rowss.items():
+            for _, row in rows.items():
+                xy(row[col['at']],y,n)
+        return n, ranges
+    return map(cols, with1Col)
+
+
+
+def oldbins(cols, rowss):
     out = {}
     for _, col in cols.items():
         ranges = {}
@@ -436,7 +486,7 @@ def bin(col, x):
     return 1 if col['hi'] == col['lo'] else math.floor(x/tmp + 0.5)*tmp
 
 
-def mergeAny(ranges0):
+def merges(ranges0, nSmall, nFar):
     def noGaps(t: dict):
         for j in range(1, len(t)):
             t[j]['lo'] = t[j-1]['hi']
@@ -448,29 +498,39 @@ def mergeAny(ranges0):
                 u[k] = v
             return u
         return t
+    def try2Merge(left,right,j):
+        y = merged(left['y'], right['y'], nSmall, nFar)
+        if y:
+            j = j+1
+            left['hi'], left['y']= right['hi'], y
+        return j , left
     ranges1, j = {}, 0
     while j < len(ranges0):
-        if j < len(ranges0)-1 and ranges0[j+1]:
-            left, right = ranges0[j], ranges0[j+1]
-            y = merge2(left['y'], right['y'])
-            if y:
-                j += 1
-                left['hi'], left['y'] = right['hi'], right['y']
-        else:
-            left = ranges0[j]
-        push(ranges1, left)
-        j += 1
+        here = ranges0[j]
+        if j < len(ranges0)-1:
+            j,here = try2Merge(here, ranges0[j+1], j)
+        j=j+1
+        push(ranges1,here)
 #   if len(ranges0) == len(ranges1):
 #     print("here ranges0==ranges1: "+ str(type(noGaps(ranges0))))
 #     return noGaps(ranges0)
 #   else:
 #     print("here ranges0!=ranges1: "+ str(type(mergeAny(ranges1))))
 #     return mergeAny(ranges1)
-    return noGaps(ranges0) if len(ranges0) == len(ranges1) else mergeAny(ranges1)
+    return noGaps(ranges0) if len(ranges0) == len(ranges1) else merges(ranges1, nSmall, nFar)
 
 
 def merge2(col1, col2):
     new = merge(col1, col2)
+    if div(new) <= (div(col1)*col1['n'] + div(col2)*col2['n'])/new['n']:
+        return new
+
+def merged(col1, col2, nSmall, nFar):
+    new = merge(col1, col2)
+    if nSmall and col1['n'] < nSmall or col2['n'] < nSmall:
+        return new
+    if nFar and not col1['isSym'] and math.abs(mid(col1)-mid(col2)) < nFar:
+        return new
     if div(new) <= (div(col1)*col1['n'] + div(col2)*col2['n'])/new['n']:
         return new
 
@@ -487,17 +547,100 @@ def merge(col1, col2):
         new['hi'] = max(col1['hi'], col2['hi'])
     return new
 
-def xpln():
-    raise NotADirectoryError
+def xpln(data,best,rest):
+    def v(has):
+        return value(has, len(best.rows), len(rest.rows), "best")
+    def score(ranges):
+        rule = RULE(ranges,maxSizes)
+        if rule:
+            oo(showRule(rule))
+            bestr = selects(rule, best.rows)
+            restr = selects(rule, rest.rows)
+            if len(bestr) + len(restr) > 0:
+                return v({'best':len(bestr), 'rest':len(restr)}) , rule
+    tmp,maxSizes = {},{}
+    for _,ranges in bins(data.cols['x'],{'best':best.rows, 'rest':rest.rows}).items():
+        maxSizes[ranges[1]['txt']] = len(ranges)
+        print('')
+        for _,range in ranges.items():
+            print(range['txt'], range['lo'], range['hi'])
+            push(tmp, {'range':range, 'max':len(ranges),'val':v(range['y']['has'])})
+    return firstN(sort3(tmp.values(),gt("val")),score)
 
-def firstN():
-    raise NotImplementedError
+def firstN(sortedRanges, scoreFun):
+    srdict={}
+    for i in range(len(sortedRanges)):
+        srdict[i]=sortedRanges[i]
+    print("")
+    def tmpmpfun(r):
+        print(str(r['range']['txt'])+"  "+str(r['range']['lo'])+"  "+str(r['range']['hi'])+"  "+str(rnd(r['val']))+"  "+o(r['range']['y']['has']))
+    map(srdict,tmpmpfun)
+    first = srdict[0]['val']
+    def useful(range):
+        if range['val'] > .05 and range['val'] > first/10:
+            return range
+    srdict = map(srdict, useful)
+    srdictnew = {k: v for k, v in srdict.items() if v is not None}
+    srdict.clear()
+    srdict.update(srdictnew)
+    out = {}
+    most = -1
+    for n in range(1,len(srdict)+1):
+        if scoreFun(map(slice(srdict,0,n,1),on("range"))):
+            tmp, rule = scoreFun(map(slice(srdict,0,n,1),on("range")))
+        if tmp and tmp>most:
+            out=rule
+            most=tmp
+    return out, most
 
-def showRulw():
-    raise NotImplementedError
+def showRule(rule):
 
-def selects():
-    raise NotImplementedError
+    def pretty(range):
+        return range['lo'] if range['lo']==range['hi'] else {range['lo'], range['hi']}
+    def merges(attr,ranges):
+        sortedRanges = sort2(ranges.values(),lt("lo"))
+        srdict={}
+        for i in range(len(sortedRanges)):
+            srdict[i]=sortedRanges[i]
+        return map(merge(srdict),pretty),attr
+    def merge(t0):
+        t={}
+        j=0
+        while j<len(t0):
+            left = t0[j]
+            if j+1 not in t0.keys(): right = None
+            else: right = t0[j+1]
+            if right and left['hi'] == right['lo']:
+                left['hi'] = right['hi']; j=j+1
+            push(t, {'lo':left['lo'], 'hi':left['hi']})
+            j=j+1
+        return t if len(t0)==len(t) else merge(t)
+    return kap(rule,merges)
+
+def selects(rule, rows):
+    def disjunction(ranges,row):
+        for _,range in ranges.items():
+            lo, hi, at = range['lo'], range['hi'], range['at']
+            x = row[at]
+            if x == "?":
+                return True
+            if lo == hi and lo == x:
+                return True
+            if lo <= x and x < hi:
+                return True
+        return False
+    def conjunction(row):
+        for _,ranges in rule.items():
+            if not disjunction(ranges,row):
+                return False
+        return True
+    def fun(r):
+        if conjunction(r):
+            return r
+        else: return None
+    mapped = map(rows, fun)
+    d = {k: v for k, v in mapped.items() if v is not None}
+    return d
 
 def itself(x):
     return x
@@ -616,12 +759,23 @@ def sort(t: dict, fun=lambda x: x.keys()):
 def sort2(t: list, fun=lambda x: x.keys()):
     return sorted(t, key=fun)
 
+def sort3(t: list, fun=lambda x: x.keys()):
+    return sorted(t, key=fun,reverse=True)
+
+def on(x):
+    def tmp(t):
+        return t[x]
+    return tmp
 
 def lt(x: str):
     def fun(dic):
         return dic[x]
     return fun
 
+def gt(x: str):
+    def fun(dic):
+        return dic[x]
+    return fun
 # x; returns one items at random
 
 
@@ -672,14 +826,14 @@ def copy(t):
 
 # Return a portion of `t`; go,stop,inc defaults to 1,#t,1.
 # Negative indexes are supported.
-def slice(t, go, stop, inc):
+def slice(t, go, stop, inc=1):
     if go and go < 0:
         go += len(t)
     if stop and stop < 0:
         stop += len(t)
     u = {}
     for j in range(int(go or 0), int(stop or len(t)), int(inc or 1)):
-        u[len(u)].append(t[j])
+        u[len(u)]=t[j]
     return u
 
 
@@ -899,7 +1053,7 @@ if __name__ == '__main__':
     def halffun():
         print(fmt("\n▶️  %s %s", 'half', ("-")*(60)))
         data = DATA.read(the['file'])
-        left, right, A, B, c = half(data)
+        left, right, A, B, c, _ = half(data)
         print(str(len(left))+"   "+str(len(right)))
         l = DATA.clone(data, left)
         r = DATA.clone(data, right)
@@ -915,7 +1069,7 @@ if __name__ == '__main__':
     def swayfun():
         print(fmt("\n▶️  %s %s", 'sway', ("-")*(60)))
         data = DATA.read(the['file'])
-        best, rest = sway(data)
+        best, rest, _ = sway(data)
         print("\nall    "+str(o(stats(data))))
         print("       "+str(o(stats(data, 'div'))))
         print("\nbest    "+str(o(stats(best))))
@@ -931,7 +1085,7 @@ if __name__ == '__main__':
         print(fmt("\n▶️  %s %s", 'bins', ("-")*(60)))
         b5 = ""
         data = DATA.read(the['file'])
-        best, rest = sway(data)
+        best, rest, _ = sway(data)
         print("all     " +
               str(o({'best': len(best.rows), 'rest': len(rest.rows)})))
         # print(bins(data.cols['x'],{'best':best.rows,'rest':rest.rows}))
@@ -951,7 +1105,15 @@ if __name__ == '__main__':
         print(fmt("\n▶️  %s %s", 'xpln', ("-")*(60)))
         b5 = ""
         data = DATA.read(the['file'])
-        best, rest = sway(data)
-        
+        best, rest, evals = sway(data)
+        rule, most = xpln(data, best, rest)
+        print("\n------------\nexplain="+"{:origin {3}}")
+        data1 = DATA.clone(data,selects(rule,data.rows))
+        print("all                 "+o(stats(data))+"  "+o(stats(data,div)))
+        print(fmt("sway with %5s evals  ", evals)+o(stats(best))+"  "+o(stats(best,div)))
+        print(fmt("xpln on   %5s evals  ", evals)+o(stats(data1))+"  "+o(stats(data1,div)))
+        top, _ = betters(data, len(best.rows))
+        top = DATA.clone(data, top)
+        print(fmt("sort with %5s evals  ", len(data.rows))+o(stats(top))+"  "+o(stats(top,div)))
     go("xpln","explore explanation sets", xplnfun)
     main(the, help, egs)
