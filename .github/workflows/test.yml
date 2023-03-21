@@ -1,0 +1,16 @@
+name: test
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: test
+      run: cd src;
+           python3 -u ./xpln.py -g all > ../etc/out/xpln.out
+    - run: grep -q fail ../etc/out/xpln.out &&  exit -1 || echo "This job's status is success."
